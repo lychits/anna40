@@ -100,6 +100,11 @@ em{font-style:italic}
 
 .cap{position:absolute;left:0;right:0;bottom:0;padding:0 22px calc(44px + var(--safe-b));z-index:2}
 .cap__num{font-size:12px;letter-spacing:.3em;color:var(--gold);text-transform:uppercase;margin-bottom:10px;opacity:0;transform:translateY(10px)}
+.cap__geo{display:flex;align-items:center;gap:7px;font-size:12.5px;letter-spacing:.04em;color:rgba(247,243,234,.8);margin:0 0 10px;opacity:0;transform:translateY(10px)}
+.cap__geo .pin{flex:none;width:12px;height:12px;background:var(--rose);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z'/%3E%3C/svg%3E") center/contain no-repeat}
+.cap__geo .dt{color:var(--gold)}
+.cap__geo .sep{opacity:.5}
+.slide.is-active .cap__geo{animation:capIn .7s .25s var(--ease-out) forwards}
 .cap__title{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(30px,8.6vw,46px);line-height:1.02;letter-spacing:-.01em;margin:0 0 12px;text-wrap:balance}
 .cap__title .w{display:inline-block;opacity:0;transform:translateY(.7em) rotate(2deg);transform-origin:left bottom}
 .cap__text{font-size:15.5px;line-height:1.45;color:rgba(247,243,234,.88);max-width:34ch;margin:0;opacity:0;transform:translateY(12px);text-wrap:pretty}
@@ -208,6 +213,31 @@ em{font-style:italic}
 @keyframes mq{to{transform:translateX(-50%)}}
 .finale__actions{display:flex;flex-direction:column;align-items:center;gap:22px;padding:34px 24px calc(20px + var(--safe-b))}
 .finale__foot{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
+/* ───────── География ───────── */
+.geo{padding:34px 0 10px;max-width:620px;margin:0 auto}
+.geo__head{padding:0 24px 14px}
+.geo__eyebrow{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.geo__title{font-family:var(--serif);font-weight:500;font-style:italic;font-size:clamp(30px,8.5vw,42px);line-height:1;margin:0 0 12px;letter-spacing:-.01em}
+.geo__title span{font-weight:600;color:var(--gold)}
+.geo__text{font-size:14.5px;line-height:1.5;color:var(--muted);margin:0;text-wrap:pretty}
+.geo__map{display:grid;gap:10px;margin:0 12px}
+.geo__panel{position:relative;border-radius:14px;overflow:hidden;background:radial-gradient(120% 80% at 50% 30%,#171318 0%,#0b0a0f 70%);border:1px solid rgba(230,200,138,.14)}
+.geo__panel-title{position:absolute;left:12px;bottom:10px;z-index:1;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:rgba(230,200,138,.8)}
+.geo__panel svg{display:block;width:100%;height:auto}
+.geo__map .land{fill:#241f21;stroke:#4a3f33;stroke-width:.7;fill-rule:evenodd}
+.geo__map .grid{stroke:rgba(230,200,138,.07);stroke-width:.6}
+.geo__map .pin{opacity:0;transform-origin:center;transform-box:fill-box}
+.geo__map.show .pin{animation:pinIn .7s var(--ease-out) forwards;animation-delay:var(--d)}
+.geo__map .pin circle.dot{fill:var(--rose)}
+.geo__map .pin circle.ring{fill:none;stroke:var(--rose);stroke-width:1.2;opacity:.7}
+.geo__map.show .pin circle.ring{animation:ring 2.6s ease-out infinite;animation-delay:calc(var(--d) + .5s)}
+.geo__map .pin.home circle.dot{fill:var(--gold)}
+.geo__map .pin.home circle.ring{stroke:var(--gold)}
+.geo__map .pin text{font-family:var(--sans);font-weight:600;fill:var(--ink);letter-spacing:.02em;paint-order:stroke;stroke:#0b0a0f;stroke-width:3px;stroke-linejoin:round}
+.geo__map .pin text.when{font-weight:400;fill:var(--gold)}
+@keyframes pinIn{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes ring{0%{opacity:.8}100%{r:var(--rmax);opacity:0}}
 
 /* ───────── Настольная ширина: телефонная рамка ───────── */
 @media (min-width:760px) and (min-aspect-ratio:3/4){

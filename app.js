@@ -120,7 +120,9 @@
     var shade = document.createElement('div'); shade.className = 'slide__shade'; el.appendChild(shade);
     var num = s.type === 'photo' ? String(s.num).padStart(2, '0') + ' / ' + C.photos : 'видео';
     var cap = document.createElement('div'); cap.className = 'cap';
-    cap.innerHTML = '<div class="cap__num">' + num + '</div><div class="cap__line"></div>' +
+    var geo = '';
+    if (s.place || s.date) geo = '<div class="cap__geo"><i class="pin"></i>' + (s.place ? '<span>' + esc(s.place) + '</span>' : '') + (s.place && s.date ? '<span class="sep">·</span>' : '') + (s.date ? '<span class="dt">' + esc(s.date) + '</span>' : '') + '</div>';
+    cap.innerHTML = '<div class="cap__num">' + num + '</div><div class="cap__line"></div>' + geo +
       '<h2 class="cap__title">' + words(esc(s.title), 'w') + '</h2><p class="cap__text">' + esc(s.text) + '</p>';
     el.appendChild(cap);
     return el;
@@ -298,11 +300,60 @@
     var a = $('.marquee__row--a'), b = $('.marquee__row--b');
     function fill(row, list) { var h = ''; list.concat(list).forEach(function (s) { h += '<img src="' + s.src + '" alt="" loading="lazy">'; }); row.innerHTML = h; }
     fill(a, photos.slice(0, 20)); fill(b, photos.slice(20, 40));
+    buildMap();
     revealLetter();
     $('#again').addEventListener('click', function () {
       finished = false; finale.hidden = true; document.body.classList.remove('scroll');
       player.hidden = false; window.scrollTo(0, 0); goto(0, 1);
     });
+  }
+  function buildMap() {
+    var M = C.map, box = $('#geoMap'); if (!M || !box) return;
+    $('#geoCount').textContent = C.countries.length;
+    $('#geoText').textContent = C.countries.join(' · ');
+    function P(lat, lon) { return [(lon - M.LON0) / (M.LON1 - M.LON0) * M.W, (M.LAT1 - lat) / (M.LAT1 - M.LAT0) * M.H]; }
+    // два окна: Америка и Европа–Африка–Азия (одна и та же карта, разные viewBox)
+    var panels = [
+      { cls: 'west', lon: [-134, -56], lat: [8, 56], title: 'Америка' },
+      { cls: 'europe', lon: [12, 52], lat: [33.5, 64], title: 'Европа и Россия' },
+      { cls: 'east', lon: [8, 140], lat: [-36, 33], title: 'Африка и Азия' }
+    ];
+    var html = '', order = 0;
+    panels.forEach(function (pn) {
+      var a = P(pn.lat[1], pn.lon[0]), b = P(pn.lat[0], pn.lon[1]);
+      var vx = a[0], vy = a[1], vw = b[0] - a[0], vh = b[1] - a[1];
+      var fs = vw * 0.034, fs2 = vw * 0.026, r = vw * 0.011, rmax = vw * 0.05;
+      var grid = '';
+      for (var lo = -120; lo <= 150; lo += 30) { var g = P(0, lo); grid += '<line class="grid" x1="' + g[0].toFixed(1) + '" y1="' + vy + '" x2="' + g[0].toFixed(1) + '" y2="' + (vy + vh) + '"/>'; }
+      for (var la = -30; la <= 60; la += 30) { var g2 = P(la, 0); grid += '<line class="grid" x1="' + vx + '" y1="' + g2[1].toFixed(1) + '" x2="' + (vx + vw) + '" y2="' + g2[1].toFixed(1) + '"/>'; }
+      var pins = '';
+      C.pins.forEach(function (p) {
+        if (p.lon < pn.lon[0] || p.lon > pn.lon[1] || p.lat < pn.lat[0] || p.lat > pn.lat[1]) return;
+        var xy = P(p.lat, p.lon), x = xy[0], y = xy[1], home = /дом/.test(p.name);
+        var lab = '';
+        if (p.name && p.pos) {
+          var tx = x, ty = y, anchor = 'middle', off = r * 2.6;
+          if (p.pos === 'r') { tx = x + off; ty = y + fs * .36; anchor = 'start'; }
+          else if (p.pos === 'l') { tx = x - off; ty = y + fs * .36; anchor = 'end'; }
+          else if (p.pos === 't') { ty = y - off - (p.when ? fs2 : 0); }
+          else { ty = y + off + fs * .9; }
+          lab = '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="' + anchor + '" font-size="' + fs.toFixed(1) + '">' + esc(p.name) + '</text>';
+          if (p.when) lab += '<text class="when" x="' + tx.toFixed(1) + '" y="' + (ty + fs2 * 1.05).toFixed(1) + '" text-anchor="' + anchor + '" font-size="' + fs2.toFixed(1) + '">' + esc(p.when) + '</text>';
+        }
+        pins += '<g class="pin' + (home ? ' home' : '') + '" style="--d:' + (0.3 + order * 0.1).toFixed(2) + 's;--rmax:' + rmax.toFixed(1) + '">' +
+          '<circle class="ring" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '"/>' +
+          '<circle class="dot" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (home ? r * 1.4 : r).toFixed(1) + '"/>' + lab + '</g>';
+        order++;
+      });
+      html += '<div class="geo__panel geo__panel--' + pn.cls + '"><div class="geo__panel-title">' + pn.title + '</div>' +
+        '<svg viewBox="' + vx.toFixed(1) + ' ' + vy.toFixed(1) + ' ' + vw.toFixed(1) + ' ' + vh.toFixed(1) + '" style="aspect-ratio:' + (vw / vh).toFixed(3) + '" aria-hidden="true" preserveAspectRatio="xMidYMid meet">' +
+        '<g class="land">' + M.land + '</g>' + grid + pins + '</svg></div>';
+    });
+    box.innerHTML = html;
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) { box.classList.add('show'); io.disconnect(); } }); }, { threshold: .2 });
+      io.observe(box);
+    } else box.classList.add('show');
   }
   function revealLetter() {
     var ps = document.querySelectorAll('.letter p');
